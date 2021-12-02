@@ -7,9 +7,11 @@
 
 
 #pragma region packet_structs
+#pragma pack(push)
+#pragma pack(1)
 struct art_net_packet {
 	char id[8] = { 'A','r','t','-','N','e','t','\0' };
-	uint16_t op_code; //The OpCode defines the class of data following ArtPoll within this UDP packet. Transmitted low byte first.
+	uint16_t op_code = OP_POLL; //The OpCode defines the class of data following ArtPoll within this UDP packet. Transmitted low byte first.
 	uint8_t prot_ver_hi; //High byte of the Art-Net protocol revision number.
 	uint8_t prot_ver_lo; //Low byte of the Art-Net protocol revision number. Current value 14. Controllers should ignore communication with nodes using a protocol version lower than 14.
 	uint8_t talk_to_me; //See page 14 in the manual
@@ -131,7 +133,7 @@ struct art_diag_data_packet {
 	const uint8_t filler3 = 0;
 	uint8_t length_hi;
 	uint8_t length_lo;
-	uint8_t data[]; //ascii text, null terminated. Max length 512.
+	uint8_t* data; //ascii text, null terminated. Max length 512.
 };
 
 struct art_time_code_packet {
@@ -157,7 +159,7 @@ struct art_command_packet {
 	uint8_t esta_man_lo;
 	uint8_t length_hi;
 	uint8_t length_lo;
-	uint8_t data[]; /*ASCII text command string, null terminated. Max length is 512 bytes including the null term.
+	uint8_t* data; /*ASCII text command string, null terminated. Max length is 512 bytes including the null term.
 	The Data field contains the command text. The text is ASCII encoded and is null
 	terminated and is case insensitive. It is legal, although inefficient, to set the Data array
 	size to the maximum of 512 and null pad unused entries.
@@ -214,7 +216,7 @@ struct art_dmx_packet {
 	uint8_t net;
 	uint8_t length_hi;
 	uint8_t length_lo;
-	uint8_t data[]; //A variable length array of DMX512 lighting data.
+	uint8_t* data; //A variable length array of DMX512 lighting data.
 };
 
 struct art_sync_packet {
@@ -237,19 +239,7 @@ struct art_nzs_packet {
 	uint8_t net;
 	uint8_t length_hi;
 	uint8_t length_lo;
-	uint8_t data[]; //A variable length array of DMX512 lighting data
-};
-
-struct art_vlc_packet {
-	char id[8] = { 'A','r','t','-','N','e','t','\0' };
-	uint16_t op_code = OP_NZS; //OpCode Transmitted low byte first.
-	uint8_t prot_ver_hi;
-	uint8_t prot_ver_lo;
-	uint8_t sequence;
-	const uint8_t start_code = 0x91;
-	uint8_t sub_uni;
-	uint8_t net;
-	vlc_data vlc; //A variable length array of VLC data
+	uint8_t* data; //A variable length array of DMX512 lighting data
 };
 
 struct vlc_data {
@@ -277,7 +267,19 @@ struct vlc_data {
 	uint8_t pay_lang_lo;
 	uint8_t beac_rep_hi;
 	uint8_t beac_rep_lo;
-	uint8_t payload[];
+	uint8_t* payload;
+};
+
+struct art_vlc_packet {
+	char id[8] = { 'A','r','t','-','N','e','t','\0' };
+	uint16_t op_code = OP_NZS; //OpCode Transmitted low byte first.
+	uint8_t prot_ver_hi;
+	uint8_t prot_ver_lo;
+	uint8_t sequence;
+	const uint8_t start_code = 0x91;
+	uint8_t sub_uni;
+	uint8_t net;
+	vlc_data vlc; //A variable length array of VLC data
 };
 
 struct art_input_packet {
@@ -306,7 +308,7 @@ struct art_firmware_master_packet {
 	uint8_t firmware_length_1;
 	uint8_t firmware_length_0;
 	const uint8_t spare[20] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
-	uint8_t data[512];
+	uint16_t data[512];
 };
 
 struct art_firmware_reply_packet {
@@ -333,6 +335,11 @@ struct art_tod_request_packet {
 	uint8_t adress[32];
 };
 
+struct rdm_uid {
+	uint16_t manu_id;
+	uint32_t id;
+};
+
 struct art_tod_data_packet {
 	char id[8] = { 'A','r','t','-','N','e','t','\0' };
 	uint16_t op_code = OP_TOD_DATA; //OpCode Transmitted low byte first.
@@ -349,12 +356,7 @@ struct art_tod_data_packet {
 	uint8_t uid_total_lo;
 	uint8_t block_count;
 	uint8_t uid_count;//length of tod
-	rdm_uid tod[];
-};
-
-struct rdm_uid {
-	uint16_t manu_id;
-	uint32_t id;
+	rdm_uid* tod;
 };
 
 struct art_tod_control_packet {
@@ -381,7 +383,7 @@ struct art_rdm_packet {
 	uint8_t net;
 	uint8_t command = 0; //0 to process packet
 	uint8_t address;
-	uint8_t rdm_packet[]; //rdm packet excluding dmx start code
+	uint8_t* rdm_packet; //rdm packet excluding dmx start code
 };
 
 struct art_rdm_sub {
@@ -398,8 +400,8 @@ struct art_rdm_sub {
 	uint16_t sub_device;
 	uint16_t sub_count;
 	const uint8_t spare[4] = { 0,0,0,0 };
-	uint16_t data[];
+	uint16_t* data;
 };
-
+#pragma pack(pop)
 #pragma endregion
 #endif //ART_NET_STRUCTS_H
