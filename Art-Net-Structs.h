@@ -9,16 +9,16 @@
 #pragma region packet_structs
 #pragma pack(push)
 #pragma pack(1)
-struct art_net_packet {
+typedef struct art_net_packet {
 	char id[8] = { 'A','r','t','-','N','e','t','\0' };
 	uint16_t op_code = OP_POLL; //The OpCode defines the class of data following ArtPoll within this UDP packet. Transmitted low byte first.
 	uint8_t prot_ver_hi; //High byte of the Art-Net protocol revision number.
 	uint8_t prot_ver_lo; //Low byte of the Art-Net protocol revision number. Current value 14. Controllers should ignore communication with nodes using a protocol version lower than 14.
 	uint8_t talk_to_me; //See page 14 in the manual
 	uint8_t priority; //See priority codes
-};
+}art_net_packet;
 
-struct art_poll_reply_packet { //manual page 21 - 26
+typedef struct art_poll_reply_packet { //manual page 21 - 26
 	char id[8] = { 'A','r','t','-','N','e','t','\0' };
 	uint16_t op_code = OP_POLL_REPLY; //OpPollReply Transmitted low byte first.
 	uint8_t ip_address[4]; //Array containing the Node’s IP address. First array entry is most significant byte of address. When binding is implemented, bound nodes may share the root node’s IPAddress and the BindIndex is used to differentiate the nodes.
@@ -62,9 +62,9 @@ struct art_poll_reply_packet { //manual page 21 - 26
 	uint8_t good_output_b[4];
 	uint8_t status_3;
 	const uint8_t filler[21] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
-};
+}art_poll_reply_packet;
 
-struct art_ip_prog_packet {
+typedef struct art_ip_prog_packet {
 	char id[8] = { 'A','r','t','-','N','e','t','\0' };
 	uint16_t op_code = OP_IP_PROG; //OpIpProg Transmitted low byte first.
 	uint8_t port_ver_hi;
@@ -84,9 +84,9 @@ struct art_ip_prog_packet {
 	uint8_t porg_port_hi; //deprecated
 	uint8_t porg_port_lo;
 	const uint8_t spare[8] = { 0,0,0,0,0,0,0,0 };
-};
+}art_ip_prog_packet;
 
-struct art_ip_prog_reply_packet {
+typedef struct art_ip_prog_reply_packet {
 	char id[8] = { 'A','r','t','-','N','e','t','\0' };
 	uint16_t op_code = OP_IP_PROG_REPLY; //OpIpProgReply Transmitted low byte first.
 	uint8_t prot_ver_hi;
@@ -104,9 +104,9 @@ struct art_ip_prog_reply_packet {
 	uint8_t porg_port_lo;
 	uint8_t status;
 	const uint8_t spare[7] = { 0,0,0,0,0,0,0 };
-};
+}art_ip_prog_reply_packet;
 
-struct art_address_packet {
+typedef struct art_address_packet {
 	char id[8] = { 'A','r','t','-','N','e','t','\0' };
 	uint16_t op_code = OP_ADDRESS; //OpAddress Transmitted low byte first.
 	uint8_t prot_ver_hi;
@@ -120,9 +120,9 @@ struct art_address_packet {
 	uint8_t sub_switch;
 	uint8_t sw_video;
 	uint8_t command;
-};
+}art_address_packet;
 
-struct art_diag_data_packet {
+typedef struct art_diag_data_packet {
 	char id[8] = { 'A','r','t','-','N','e','t','\0' };
 	uint16_t op_code = OP_DIAG_DATA; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
@@ -134,9 +134,9 @@ struct art_diag_data_packet {
 	uint8_t length_hi;
 	uint8_t length_lo;
 	uint8_t* data; //ascii text, null terminated. Max length 512.
-};
+}art_diag_data_packet;
 
-struct art_time_code_packet {
+typedef struct art_time_code_packet {
 	char id[8] = { 'A','r','t','-','N','e','t','\0' };
 	uint16_t op_code = OP_TIME_CODE; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
@@ -148,9 +148,9 @@ struct art_time_code_packet {
 	uint8_t minutes;
 	uint8_t hours;
 	uint8_t type;
-};
+}art_time_code_packet;
 
-struct art_command_packet {
+typedef struct art_command_packet {
 	char id[8] = { 'A','r','t','-','N','e','t','\0' };
 	uint16_t op_code = OP_COMMAND; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
@@ -177,9 +177,9 @@ struct art_command_packet {
 	SwoutText			This command is used to re-programme the label associated with the ArtPollReply->Swout fields. Syntax: "SwoutText=Playback&"
 	SwinText			This command is used to re-programme the label associated with the ArtPollReply->Swin fields. Syntax: "SwinText=Record&
 	*/
-};
+}art_command_packet;
 
-struct art_trigger_packet {
+typedef struct art_trigger_packet {
 	char id[8] = { 'A','r','t','-','N','e','t','\0' };
 	uint16_t op_code = OP_TRIGGER; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
@@ -191,7 +191,7 @@ struct art_trigger_packet {
 	uint8_t key;
 	uint8_t sub_key;
 	uint8_t data[512];
-};
+}art_trigger_packet;
 
 /*
 ArtDmx packets must be unicast to subscribers of the specific universe contained in the
@@ -205,7 +205,7 @@ ArtDmx must not be broadcast. If the number of universe subscribers exceeds 40 f
 given universe, the transmitting device may broadcast.
 
 */
-struct art_dmx_packet {
+typedef struct art_dmx_packet {
 	char id[8] = { 'A','r','t','-','N','e','t','\0' };
 	uint16_t op_code = OP_DMX; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
@@ -217,18 +217,18 @@ struct art_dmx_packet {
 	uint8_t length_hi;
 	uint8_t length_lo;
 	uint8_t* data; //A variable length array of DMX512 lighting data.
-};
+}art_dmx_packet;
 
-struct art_sync_packet {
+typedef struct art_sync_packet {
 	char id[8] = { 'A','r','t','-','N','e','t','\0' };
 	uint16_t op_code = OP_SYNC; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
 	uint8_t prot_ver_lo;
 	uint8_t aux1 = 0;
 	uint8_t aux2 = 0;
-};
+}art_sync_packet;
 
-struct art_nzs_packet {
+typedef struct art_nzs_packet {
 	char id[8] = { 'A','r','t','-','N','e','t','\0' };
 	uint16_t op_code = OP_NZS; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
@@ -240,9 +240,9 @@ struct art_nzs_packet {
 	uint8_t length_hi;
 	uint8_t length_lo;
 	uint8_t* data; //A variable length array of DMX512 lighting data
-};
+}art_nzs_packet;
 
-struct vlc_data {
+typedef struct vlc_data {
 	uint8_t length_hi;
 	uint8_t length_lo;
 	uint8_t man_id_hi = 0x41;
@@ -268,9 +268,9 @@ struct vlc_data {
 	uint8_t beac_rep_hi;
 	uint8_t beac_rep_lo;
 	uint8_t* payload;
-};
+}vlc_data;
 
-struct art_vlc_packet {
+typedef struct art_vlc_packet {
 	char id[8] = { 'A','r','t','-','N','e','t','\0' };
 	uint16_t op_code = OP_NZS; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
@@ -280,9 +280,9 @@ struct art_vlc_packet {
 	uint8_t sub_uni;
 	uint8_t net;
 	vlc_data vlc; //A variable length array of VLC data
-};
+}art_vlc_packet;
 
-struct art_input_packet {
+typedef struct art_input_packet {
 	char id[8] = { 'A','r','t','-','N','e','t','\0' };
 	uint16_t op_code = OP_INPUT; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
@@ -292,9 +292,9 @@ struct art_input_packet {
 	uint8_t num_ports_hi;
 	uint8_t num_ports_lo;
 	uint8_t input[4]; //set bit 0 to 1 to disable the input
-};
+}art_input_packet;
 
-struct art_firmware_master_packet {
+typedef struct art_firmware_master_packet {
 	char id[8] = { 'A','r','t','-','N','e','t','\0' };
 	uint16_t op_code = OP_FIRMWARE_MASTER; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
@@ -309,9 +309,9 @@ struct art_firmware_master_packet {
 	uint8_t firmware_length_0;
 	const uint8_t spare[20] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 	uint16_t data[512];
-};
+}art_firmware_master_packet;
 
-struct art_firmware_reply_packet {
+typedef struct art_firmware_reply_packet {
 	char id[8] = { 'A','r','t','-','N','e','t','\0' };
 	uint16_t op_code = OP_FIRMWARE_REPLY; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
@@ -320,9 +320,9 @@ struct art_firmware_reply_packet {
 	const uint8_t filler2 = 0;
 	uint8_t type;
 	const uint8_t spare[21] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
-};
+}art_firmware_reply_packet;
 
-struct art_tod_request_packet {
+typedef struct art_tod_request_packet {
 	char id[8] = { 'A','r','t','-','N','e','t','\0' };
 	uint16_t op_code = OP_TOD_REQUEST; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
@@ -333,14 +333,14 @@ struct art_tod_request_packet {
 	uint8_t net;
 	uint8_t add_count;
 	uint8_t adress[32];
-};
+}art_tod_request_packet;
 
-struct rdm_uid {
+typedef struct rdm_uid {
 	uint16_t manu_id;
 	uint32_t id;
-};
+}rdm_uid;
 
-struct art_tod_data_packet {
+typedef struct art_tod_data_packet {
 	char id[8] = { 'A','r','t','-','N','e','t','\0' };
 	uint16_t op_code = OP_TOD_DATA; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
@@ -357,9 +357,9 @@ struct art_tod_data_packet {
 	uint8_t block_count;
 	uint8_t uid_count;//length of tod
 	rdm_uid* tod;
-};
+}art_tod_data_packet;
 
-struct art_tod_control_packet {
+typedef struct art_tod_control_packet {
 	char id[8] = { 'A','r','t','-','N','e','t','\0' };
 	uint16_t op_code = OP_TOD_CONTROL; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
@@ -370,9 +370,9 @@ struct art_tod_control_packet {
 	uint8_t net;
 	uint8_t command; //0 for none, 1 to tod flush
 	uint8_t address;
-};
+}art_tod_control_packet;
 
-struct art_rdm_packet {
+typedef struct art_rdm_packet {
 	char id[8] = { 'A','r','t','-','N','e','t','\0' };
 	uint16_t op_code = OP_RDM; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
@@ -384,9 +384,9 @@ struct art_rdm_packet {
 	uint8_t command = 0; //0 to process packet
 	uint8_t address;
 	uint8_t* rdm_packet; //rdm packet excluding dmx start code
-};
+}art_rdm_packet;
 
-struct art_rdm_sub {
+typedef struct art_rdm_sub {
 	char id[8] = { 'A','r','t','-','N','e','t','\0' };
 	uint16_t op_code = OP_RDM_SUB; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
@@ -401,7 +401,7 @@ struct art_rdm_sub {
 	uint16_t sub_count;
 	const uint8_t spare[4] = { 0,0,0,0 };
 	uint16_t* data;
-};
+}art_rdm_sub;
 #pragma pack(pop)
 #pragma endregion
 #endif //ART_NET_STRUCTS_H
