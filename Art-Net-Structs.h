@@ -1,6 +1,6 @@
 #ifndef ART_NET_STRUCTS_H
 #define ART_NET_STRUCTS_H
-#include "Art-Net-4-PI.h"
+#include "Art-Net-Codes.h"
 
 //############################################################################
 //using Art-Net™ Designed by and Copyright Artistic Licence Holdings Ltd
@@ -19,8 +19,8 @@ typedef struct art_net_packet {
 }art_net_packet;
 
 typedef struct art_poll_reply_packet { //manual page 21 - 26
-	const char* id = "Art-Net";//{'A', 'r', 't', '-', 'N', 'e', 't', '\0'};
-	uint16_t op_code = MAKEWORD(HIBYTE(OP_POLL_REPLY), LOBYTE(OP_POLL_REPLY)); //OpPollReply Transmitted low byte first.
+	char id[8];//{'A', 'r', 't', '-', 'N', 'e', 't', '\0'};
+	uint16_t op_code = MAKEWORD(LOBYTE(OP_POLL_REPLY), HIBYTE(OP_POLL_REPLY)); //OpPollReply Transmitted low byte first.
 	uint8_t ip_address[4] = { NULL,NULL,NULL,NULL }; //Array containing the Node’s IP address. First array entry is most significant byte of address. When binding is implemented, bound nodes may share the root node’s IPAddress and the BindIndex is used to differentiate the nodes.
 	uint16_t port = NULL;
 	uint8_t version_info_h = NULL;
@@ -64,6 +64,7 @@ typedef struct art_poll_reply_packet { //manual page 21 - 26
 	const uint8_t filler[21] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
 	art_poll_reply_packet(ULONG address, char node_report_in[64]) {
+		strncpy_s(id, "Art-Net", sizeof(char) * 8);//id
 		ip_address[0] = GETBYTE(address, 0);//address
 		ip_address[1] = GETBYTE(address, 1);//address
 		ip_address[2] = GETBYTE(address, 2);//address
@@ -71,14 +72,17 @@ typedef struct art_poll_reply_packet { //manual page 21 - 26
 		port = (uint16_t)ART_NET_PORT_NUMBER;//port
 		version_info_h = HIBYTE(FIRMWARE_VERSION);//firmware version high
 		version_info_l = LOBYTE(FIRMWARE_VERSION);//firmware version low
-		oem_hi = HIBYTE(OemMlightMidDis1);//oem high
-		oem = LOBYTE(OemMlightMidDis1);//oem low
+		oem_hi = HIBYTE(OemD4aArtDmxUni41);//oem high
+		oem = LOBYTE(OemD4aArtDmxUni41);//oem low
 		status_1 = DEFAULT_STATUS1;//status 1 register
-		esta_man_lo = LOBYTE(ESTA_MANUFACTURER_CODE);//manufacturer low byte
-		esta_man_hi = HIBYTE(ESTA_MANUFACTURER_CODE);//manufacturer high byte
+		esta_man_lo = 'S';//manufacturer low byte
+		esta_man_hi = 'L';//manufacturer high byte
 		strncpy_s(short_name, SHORT_DEVICE_NAME, sizeof(char) * 18);//short name of node
 		strncpy_s(long_name, DEVICE_NAME, sizeof(char) * 64);//long name of node
-		strncpy_s(node_report, node_report_in, sizeof(char) * 64);//node report
+#pragma warning (push, 3)
+#pragma warning (disable : 4996)
+		strncpy(node_report, node_report_in, sizeof(char) * 64);//node report
+#pragma warning(pop)
 		num_ports_lo = (uint8_t)1;//Low byte of number of ports, 0
 		port_types[0] = PORT_TYPE_ART_NET_INPUT;//port types
 		good_input[0] = GOOD_INPUT_DATA_RECEIVED;//input status
@@ -89,7 +93,7 @@ typedef struct art_poll_reply_packet { //manual page 21 - 26
 		bind_ip[1] = GETBYTE(address, 1);//address
 		bind_ip[2] = GETBYTE(address, 2);//address
 		bind_ip[3] = GETBYTE(address, 3);//address
-		bind_index = (uint8_t)2;//bindindex
+		bind_index = (uint8_t)10;//bindindex
 		status_2 = DEFAULT_STATUS2;//status 2 registers
 		status_3 = (uint8_t)(STATUS3_FAIL_OVER_SUPPORTED | STATUS3_FAIL_OVER_HOLD_LAST); //status 3 register
 	}

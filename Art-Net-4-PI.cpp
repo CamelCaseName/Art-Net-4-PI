@@ -1,17 +1,22 @@
 ﻿// Art-Net-4-PI.cpp : Defines the entry point for the application.
-//
 
 #include "Art-Net-4-PI.h"
-#include "Art-Net-Structs.h" //manually typed struct definitions from the latest Art-Net 4 documentation 
 
 using namespace std;
 
-void send_reply_packet(IN_ADDR address, int socket_fd, ULONG device_address, ULONG counter) {
+void send_reply_packet(sockaddr_in socket_data, int socket_fd, ULONG device_address, ULONG counter) {
 	//create node status
 	char message_string[] = "hi there :)";
 	char format_string[] = "#%d[%d]%s";
 	char node_report[64] = {};
 	snprintf((char*)node_report, 64, (char*)format_string, RC_POWER_OK, counter, message_string);
+
+	//clean node report of trailing junk
+	for (size_t i = 0; i < 63; i++) {
+		if (node_report[i] == '\0') {
+			node_report[i + 1] = '\0';
+		}
+	}
 
 	if (node_report) {
 		//create struct
@@ -22,12 +27,42 @@ void send_reply_packet(IN_ADDR address, int socket_fd, ULONG device_address, ULO
 		if (buffer != nullptr) {
 
 			//move struct to a buffer for sending
-			memcpy(buffer, &current_packet, sizeof(current_packet));
+			memcpy(&buffer, &current_packet, sizeof(current_packet));
 
-			//send to controller
-			sendto(socket_fd, buffer, BUFFER_SIZE, 0, (struct sockaddr*)&address, BUFFER_SIZE);
+			//temp values for address manipulation
+			ULONG address = 0;
+			ULONG address_mask = 0;
 
-			printf("Sent reply packet\n");
+			//"cast" mask to ulong
+			inet_pton(AF_INET, ART_SUBNET_MASK, &address_mask);
+
+			//add mask to address
+			char address_format_string[] = "%d.%d.%d.%d";
+			char address_string[17] = {};
+			//so some string magic
+			snprintf(
+				(char*)address_string,
+				17,
+				(char*)address_format_string,
+				APPLYSUBNETMASK(address_mask, device_address, 0),
+				APPLYSUBNETMASK(address_mask, device_address, 1),
+				APPLYSUBNETMASK(address_mask, device_address, 2),
+				APPLYSUBNETMASK(address_mask, device_address, 3)
+			);
+
+			//"cast" address back into numbers
+			inet_pton(AF_INET, address_string, &address);
+			socket_data.sin_addr.s_addr = address;
+
+			//send back to controller
+			if (sendto(socket_fd, buffer, sizeof(current_packet), 0, (struct sockaddr*)&socket_data, sizeof(current_packet)) == WSAGetLastError()) {
+				print_error("send failed");
+			}
+
+			//print notification and address
+			char text_addr[17] = {};
+			inet_ntop(AF_INET, &address, text_addr, sizeof(text_addr));
+			printf("reply sent to: %s\n", text_addr);
 		}
 	}
 }
@@ -68,7 +103,7 @@ int main(int argc, char* argv[]) {
 		inet_pton(AF_INET, argv[2], &device_address);
 	}
 	else {//assume localhost
-		char text_addr[16] = {};
+		char text_addr[17] = {};
 		inet_ntop(AF_INET, &device_address, text_addr, sizeof(text_addr));
 		printf("Please provide command line arguments, assuming address of %s\n", text_addr);
 	}
@@ -133,10 +168,7 @@ int main(int argc, char* argv[]) {
 
 			switch (op_code) {
 			case OP_POLL: {
-				art_net_packet current_packet = {};
-				//move buffer into packet depending on packet type
-				memcpy(&current_packet, buffer, sizeof(current_packet));
-				send_reply_packet(sin_other.sin_addr, socket_fd, device_address, poll_counter++); //send reply and increase pollcounter
+				send_reply_packet(sin_other, socket_fd, device_address, poll_counter++); //send reply and increase pollcounter
 			}
 						break;
 			case OP_POLL_REPLY:
@@ -155,9 +187,9 @@ int main(int argc, char* argv[]) {
 				break;
 			default:
 				//check own address
-				char text_address[16];
+				char text_address[17];
 				inet_ntop(AF_INET, &sin_local.sin_addr, text_address, sizeof(text_address));
-				//printf(text_address);
+				printf("received something from :%s",text_address);
 				//printf("\n");
 				printf(buffer);
 				printf("\n");
@@ -165,9 +197,6 @@ int main(int argc, char* argv[]) {
 				break;
 			}
 		}
-
-		//cast buffer into art-net struct depending on op-code and integrity
-
 	}
 
 	WSACleanup();
