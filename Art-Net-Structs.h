@@ -1,17 +1,17 @@
 #ifndef ART_NET_STRUCTS_H
 #define ART_NET_STRUCTS_H
+#include "Art-Net-4-PI.h"
 
 //############################################################################
 //using Art-Net™ Designed by and Copyright Artistic Licence Holdings Ltd
 //############################################################################
 
-
 #pragma region packet_structs
 #pragma pack(push)
 #pragma pack(1)
 typedef struct art_net_packet {
-	char id[8] = { 'A','r','t','-','N','e','t','\0' };
-	uint16_t op_code = OP_POLL; //The OpCode defines the class of data following ArtPoll within this UDP packet. Transmitted low byte first.
+	char id[8] = "Art-Net";
+	uint16_t op_code = MAKEWORD(HIBYTE(OP_POLL), LOBYTE(OP_POLL)); //The OpCode defines the class of data following ArtPoll within this UDP packet. Transmitted low byte first.
 	uint8_t prot_ver_hi; //High byte of the Art-Net protocol revision number.
 	uint8_t prot_ver_lo; //Low byte of the Art-Net protocol revision number. Current value 14. Controllers should ignore communication with nodes using a protocol version lower than 14.
 	uint8_t talk_to_me; //See page 14 in the manual
@@ -19,53 +19,84 @@ typedef struct art_net_packet {
 }art_net_packet;
 
 typedef struct art_poll_reply_packet { //manual page 21 - 26
-	char id[8] = { 'A','r','t','-','N','e','t','\0' };
-	uint16_t op_code = OP_POLL_REPLY; //OpPollReply Transmitted low byte first.
-	uint8_t ip_address[4]; //Array containing the Node’s IP address. First array entry is most significant byte of address. When binding is implemented, bound nodes may share the root node’s IPAddress and the BindIndex is used to differentiate the nodes.
-	uint16_t port;
-	uint8_t version_info_h;
-	uint8_t version_info_l;
-	uint8_t net_switch;
-	uint8_t sub_switch;
-	uint8_t oem_hi;
-	uint8_t oem;
-	uint8_t ubea_version;
-	uint8_t status_1;
-	uint8_t esta_man_lo;
-	uint8_t esta_man_hi;
+	const char* id = "Art-Net";//{'A', 'r', 't', '-', 'N', 'e', 't', '\0'};
+	uint16_t op_code = MAKEWORD(HIBYTE(OP_POLL_REPLY), LOBYTE(OP_POLL_REPLY)); //OpPollReply Transmitted low byte first.
+	uint8_t ip_address[4] = { NULL,NULL,NULL,NULL }; //Array containing the Node’s IP address. First array entry is most significant byte of address. When binding is implemented, bound nodes may share the root node’s IPAddress and the BindIndex is used to differentiate the nodes.
+	uint16_t port = NULL;
+	uint8_t version_info_h = NULL;
+	uint8_t version_info_l = NULL;
+	uint8_t net_switch = NULL;
+	uint8_t sub_switch = NULL;
+	uint8_t oem_hi = NULL;
+	uint8_t oem = NULL;
+	uint8_t ubea_version = NULL;
+	uint8_t status_1 = NULL;
+	uint8_t esta_man_lo = NULL;
+	uint8_t esta_man_hi = NULL;
 	char short_name[18]; //Null-terminated string of the short name
 	char long_name[64]; //Null-terminated string of the long name
 	char node_report[64]; //Null-terminated string of textual from a node. formatted as: “#xxxx [yyyy..] zzzzz…”xxxx is a hex status code as defined in Table 3. yyyy is a decimal counter that increments every time the Node sends an ArtPollResponse. zzzzz is some Text.
-	uint8_t num_ports_hi;
-	uint8_t num_ports_lo;
-	uint8_t port_types[4]; //This array defines the operation and protocol of each channel.
-	uint8_t good_input[4]; //This array defines the status of each input node
-	uint8_t good_output[4]; //This array defines the status of each output node
-	uint8_t sw_in[4];
-	uint8_t sw_out[4];
-	uint8_t sw_video;
-	uint8_t sw_macro;
-	uint8_t sw_remote;
-	const uint8_t spare_1 = 0;
-	const uint8_t spare_2 = 0;
-	const uint8_t spare_3 = 0;
-	uint8_t style;
-	uint8_t mac_hi;
-	uint8_t mac_4;
-	uint8_t mac_3;
-	uint8_t mac_2;
-	uint8_t mac_1;
-	uint8_t mac_lo;
-	uint8_t bind_ip[4];
-	uint8_t bind_index;
-	uint8_t status_2;
-	uint8_t good_output_b[4];
-	uint8_t status_3;
+	uint8_t num_ports_hi = NULL;
+	uint8_t num_ports_lo = NULL;
+	uint8_t port_types[4] = { NULL,NULL,NULL,NULL }; //This array defines the operation and protocol of each channel.
+	uint8_t good_input[4] = { NULL,NULL,NULL,NULL }; //This array defines the status of each input node
+	uint8_t good_output[4] = { NULL,NULL,NULL,NULL }; //This array defines the status of each output node
+	uint8_t sw_in[4] = { NULL,NULL,NULL,NULL };
+	uint8_t sw_out[4] = { NULL,NULL,NULL,NULL };
+	uint8_t sw_video = NULL;
+	uint8_t sw_macro = NULL;
+	uint8_t sw_remote = NULL;
+	const uint8_t spare_1 = NULL;
+	const uint8_t spare_2 = NULL;
+	const uint8_t spare_3 = NULL;
+	uint8_t style = NULL;
+	uint8_t mac_hi = NULL;
+	uint8_t mac_4 = NULL;
+	uint8_t mac_3 = NULL;
+	uint8_t mac_2 = NULL;
+	uint8_t mac_1 = NULL;
+	uint8_t mac_lo = NULL;
+	uint8_t bind_ip[4] = { NULL,NULL,NULL,NULL };
+	uint8_t bind_index = NULL;
+	uint8_t status_2 = NULL;
+	uint8_t good_output_b[4] = { NULL,NULL,NULL,NULL };
+	uint8_t status_3 = NULL;
 	const uint8_t filler[21] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+
+	art_poll_reply_packet(ULONG address, char node_report_in[64]) {
+		ip_address[0] = GETBYTE(address, 0);//address
+		ip_address[1] = GETBYTE(address, 1);//address
+		ip_address[2] = GETBYTE(address, 2);//address
+		ip_address[3] = GETBYTE(address, 3);//address
+		port = (uint16_t)ART_NET_PORT_NUMBER;//port
+		version_info_h = HIBYTE(FIRMWARE_VERSION);//firmware version high
+		version_info_l = LOBYTE(FIRMWARE_VERSION);//firmware version low
+		oem_hi = HIBYTE(OemMlightMidDis1);//oem high
+		oem = LOBYTE(OemMlightMidDis1);//oem low
+		status_1 = DEFAULT_STATUS1;//status 1 register
+		esta_man_lo = LOBYTE(ESTA_MANUFACTURER_CODE);//manufacturer low byte
+		esta_man_hi = HIBYTE(ESTA_MANUFACTURER_CODE);//manufacturer high byte
+		strncpy_s(short_name, SHORT_DEVICE_NAME, sizeof(char) * 18);//short name of node
+		strncpy_s(long_name, DEVICE_NAME, sizeof(char) * 64);//long name of node
+		strncpy_s(node_report, node_report_in, sizeof(char) * 64);//node report
+		num_ports_lo = (uint8_t)1;//Low byte of number of ports, 0
+		port_types[0] = PORT_TYPE_ART_NET_INPUT;//port types
+		good_input[0] = GOOD_INPUT_DATA_RECEIVED;//input status
+		good_output[0] = DEFAULT_GOOD_OUTPUT;//input status
+		sw_in[0] = (uint8_t)1;//low input address bits 0-3
+		style = ST_VISUAL;
+		bind_ip[0] = GETBYTE(address, 0);//address
+		bind_ip[1] = GETBYTE(address, 1);//address
+		bind_ip[2] = GETBYTE(address, 2);//address
+		bind_ip[3] = GETBYTE(address, 3);//address
+		bind_index = (uint8_t)2;//bindindex
+		status_2 = DEFAULT_STATUS2;//status 2 registers
+		status_3 = (uint8_t)(STATUS3_FAIL_OVER_SUPPORTED | STATUS3_FAIL_OVER_HOLD_LAST); //status 3 register
+	}
 }art_poll_reply_packet;
 
 typedef struct art_ip_prog_packet {
-	char id[8] = { 'A','r','t','-','N','e','t','\0' };
+	char id[8] = "Art-Net";
 	uint16_t op_code = OP_IP_PROG; //OpIpProg Transmitted low byte first.
 	uint8_t port_ver_hi;
 	uint8_t port_ver_lo;
@@ -87,7 +118,7 @@ typedef struct art_ip_prog_packet {
 }art_ip_prog_packet;
 
 typedef struct art_ip_prog_reply_packet {
-	char id[8] = { 'A','r','t','-','N','e','t','\0' };
+	char id[8] = "Art-Net";
 	uint16_t op_code = OP_IP_PROG_REPLY; //OpIpProgReply Transmitted low byte first.
 	uint8_t prot_ver_hi;
 	uint8_t prot_ver_lo;
@@ -107,7 +138,7 @@ typedef struct art_ip_prog_reply_packet {
 }art_ip_prog_reply_packet;
 
 typedef struct art_address_packet {
-	char id[8] = { 'A','r','t','-','N','e','t','\0' };
+	char id[8] = "Art-Net";
 	uint16_t op_code = OP_ADDRESS; //OpAddress Transmitted low byte first.
 	uint8_t prot_ver_hi;
 	uint8_t prot_ver_lo;
@@ -123,7 +154,7 @@ typedef struct art_address_packet {
 }art_address_packet;
 
 typedef struct art_diag_data_packet {
-	char id[8] = { 'A','r','t','-','N','e','t','\0' };
+	char id[8] = "Art-Net";
 	uint16_t op_code = OP_DIAG_DATA; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
 	uint8_t prot_ver_lo;
@@ -137,7 +168,7 @@ typedef struct art_diag_data_packet {
 }art_diag_data_packet;
 
 typedef struct art_time_code_packet {
-	char id[8] = { 'A','r','t','-','N','e','t','\0' };
+	char id[8] = "Art-Net";
 	uint16_t op_code = OP_TIME_CODE; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
 	uint8_t prot_ver_lo;
@@ -151,7 +182,7 @@ typedef struct art_time_code_packet {
 }art_time_code_packet;
 
 typedef struct art_command_packet {
-	char id[8] = { 'A','r','t','-','N','e','t','\0' };
+	char id[8] = "Art-Net";
 	uint16_t op_code = OP_COMMAND; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
 	uint8_t prot_ver_lo;
@@ -180,7 +211,7 @@ typedef struct art_command_packet {
 }art_command_packet;
 
 typedef struct art_trigger_packet {
-	char id[8] = { 'A','r','t','-','N','e','t','\0' };
+	char id[8] = "Art-Net";
 	uint16_t op_code = OP_TRIGGER; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
 	uint8_t prot_ver_lo;
@@ -206,7 +237,7 @@ given universe, the transmitting device may broadcast.
 
 */
 typedef struct art_dmx_packet {
-	char id[8] = { 'A','r','t','-','N','e','t','\0' };
+	char id[8] = "Art-Net";
 	uint16_t op_code = OP_DMX; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
 	uint8_t prot_ver_lo;
@@ -220,7 +251,7 @@ typedef struct art_dmx_packet {
 }art_dmx_packet;
 
 typedef struct art_sync_packet {
-	char id[8] = { 'A','r','t','-','N','e','t','\0' };
+	char id[8] = "Art-Net";
 	uint16_t op_code = OP_SYNC; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
 	uint8_t prot_ver_lo;
@@ -229,7 +260,7 @@ typedef struct art_sync_packet {
 }art_sync_packet;
 
 typedef struct art_nzs_packet {
-	char id[8] = { 'A','r','t','-','N','e','t','\0' };
+	char id[8] = "Art-Net";
 	uint16_t op_code = OP_NZS; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
 	uint8_t prot_ver_lo;
@@ -271,7 +302,7 @@ typedef struct vlc_data {
 }vlc_data;
 
 typedef struct art_vlc_packet {
-	char id[8] = { 'A','r','t','-','N','e','t','\0' };
+	char id[8] = "Art-Net";
 	uint16_t op_code = OP_NZS; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
 	uint8_t prot_ver_lo;
@@ -283,7 +314,7 @@ typedef struct art_vlc_packet {
 }art_vlc_packet;
 
 typedef struct art_input_packet {
-	char id[8] = { 'A','r','t','-','N','e','t','\0' };
+	char id[8] = "Art-Net";
 	uint16_t op_code = OP_INPUT; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
 	uint8_t prot_ver_lo;
@@ -295,7 +326,7 @@ typedef struct art_input_packet {
 }art_input_packet;
 
 typedef struct art_firmware_master_packet {
-	char id[8] = { 'A','r','t','-','N','e','t','\0' };
+	char id[8] = "Art-Net";
 	uint16_t op_code = OP_FIRMWARE_MASTER; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
 	uint8_t prot_ver_lo;
@@ -312,7 +343,7 @@ typedef struct art_firmware_master_packet {
 }art_firmware_master_packet;
 
 typedef struct art_firmware_reply_packet {
-	char id[8] = { 'A','r','t','-','N','e','t','\0' };
+	char id[8] = "Art-Net";
 	uint16_t op_code = OP_FIRMWARE_REPLY; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
 	uint8_t prot_ver_lo;
@@ -323,7 +354,7 @@ typedef struct art_firmware_reply_packet {
 }art_firmware_reply_packet;
 
 typedef struct art_tod_request_packet {
-	char id[8] = { 'A','r','t','-','N','e','t','\0' };
+	char id[8] = "Art-Net";
 	uint16_t op_code = OP_TOD_REQUEST; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
 	uint8_t prot_ver_lo;
@@ -341,7 +372,7 @@ typedef struct rdm_uid {
 }rdm_uid;
 
 typedef struct art_tod_data_packet {
-	char id[8] = { 'A','r','t','-','N','e','t','\0' };
+	char id[8] = "Art-Net";
 	uint16_t op_code = OP_TOD_DATA; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
 	uint8_t prot_ver_lo;
@@ -360,7 +391,7 @@ typedef struct art_tod_data_packet {
 }art_tod_data_packet;
 
 typedef struct art_tod_control_packet {
-	char id[8] = { 'A','r','t','-','N','e','t','\0' };
+	char id[8] = "Art-Net";
 	uint16_t op_code = OP_TOD_CONTROL; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
 	uint8_t prot_ver_lo;
@@ -373,7 +404,7 @@ typedef struct art_tod_control_packet {
 }art_tod_control_packet;
 
 typedef struct art_rdm_packet {
-	char id[8] = { 'A','r','t','-','N','e','t','\0' };
+	char id[8] = "Art-Net";
 	uint16_t op_code = OP_RDM; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
 	uint8_t prot_ver_lo;
@@ -387,7 +418,7 @@ typedef struct art_rdm_packet {
 }art_rdm_packet;
 
 typedef struct art_rdm_sub {
-	char id[8] = { 'A','r','t','-','N','e','t','\0' };
+	char id[8] = "Art-Net";
 	uint16_t op_code = OP_RDM_SUB; //OpCode Transmitted low byte first.
 	uint8_t prot_ver_hi;
 	uint8_t prot_ver_lo;
