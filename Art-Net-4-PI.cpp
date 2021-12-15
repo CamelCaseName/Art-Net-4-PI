@@ -56,7 +56,7 @@ void send_reply_packet(sockaddr_in socket_data, int socket_fd, ULONG device_addr
 
 			//send back to controller
 			if (sendto(socket_fd, buffer, sizeof(current_packet), 0, (struct sockaddr*)&socket_data, sizeof(current_packet)) == WSAGetLastError()) {
-				print_error("send failed");
+				print_error("send failed\n");
 			}
 
 			//print notification and address
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
 #ifdef WINDOWS
 	WSADATA wsa;
 	if (WSAStartup(MAKEWORD(1, 1), &wsa)) {
-		print_error("wsa startup failed");
+		print_error("wsa startup failed\n");
 	}
 #endif // WINDOWS
 
@@ -113,13 +113,13 @@ int main(int argc, char* argv[]) {
 
 	//check if socket was created
 	if (socket_fd < 0) {
-		print_error("socket creation failed");
+		print_error("socket creation failed\n");
 	}
 
 	//set options
 	char options = 1;
 	if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &options, sizeof(options)) == SOCKET_ERROR) {
-		print_error("setsockopt failed");
+		print_error("setsockopt failed\n");
 	}
 
 
@@ -165,6 +165,9 @@ int main(int argc, char* argv[]) {
 		}
 		else {//correct packet found, determine type then act on it
 
+			//check own address
+			char text_address[17];
+			inet_ntop(AF_INET, &sin_local.sin_addr, text_address, sizeof(text_address));
 
 			switch (op_code) {
 			case OP_POLL: {
@@ -176,6 +179,7 @@ int main(int argc, char* argv[]) {
 			case OP_DIAG_DATA:
 				break;
 			case OP_DMX:
+				printf("DMX packet received from :%s\n", text_address);
 				break;
 			case OP_NZS:
 				break;
@@ -186,10 +190,7 @@ int main(int argc, char* argv[]) {
 			case OP_RDM:
 				break;
 			default:
-				//check own address
-				char text_address[17];
-				inet_ntop(AF_INET, &sin_local.sin_addr, text_address, sizeof(text_address));
-				printf("received something from :%s",text_address);
+				printf("received something from :%s\n", text_address);
 				//printf("\n");
 				printf(buffer);
 				printf("\n");
