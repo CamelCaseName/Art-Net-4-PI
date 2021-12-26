@@ -24,5 +24,7 @@ constexpr auto DEVICE_NAME = "pixelflut by rinderhacc on a PI4B                 
 constexpr auto SHORT_DEVICE_NAME = "pixelflut        ";
 const char* INFO_OUTPUT_STRING = "########################################\n##  Art-Net-4-PI running on port %d ##\n##   ready to receive packets now...  ##\n########################################\n";
 const char* ART_SUBNET_MASK = "0.255.255.255";
+constexpr char OUTPUT_SIDE_X = 13;
+constexpr char OUTPUT_SIDE_Y = (char)(((float)170 / (float)OUTPUT_SIDE_X) + 0.5f);
 
 #endif

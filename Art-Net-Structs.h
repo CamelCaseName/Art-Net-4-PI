@@ -79,10 +79,7 @@ typedef struct art_poll_reply_packet { //manual page 21 - 26
 		esta_man_hi = 'L';//manufacturer high byte
 		strncpy_s(short_name, SHORT_DEVICE_NAME, sizeof(char) * 18);//short name of node
 		strncpy_s(long_name, DEVICE_NAME, sizeof(char) * 64);//long name of node
-#pragma warning (push, 3)
-#pragma warning (disable : 4996)
-		strncpy(node_report, node_report_in, sizeof(char) * 64);//node report
-#pragma warning(pop)
+		memcpy(node_report, node_report_in, sizeof(char) * 64);//node report
 		num_ports_lo = (uint8_t)1;//Low byte of number of ports, 0
 		port_types[0] = PORT_TYPE_ART_NET_INPUT;//port types
 		good_input[0] = GOOD_INPUT_DATA_RECEIVED;//input status

@@ -67,6 +67,52 @@ void send_reply_packet(sockaddr_in socket_data, int socket_fd, ULONG device_addr
 	}
 }
 
+void display_dmx(char* data, short len) {
+#ifdef WINDOWS //on windows so console
+	char id = 0;
+	for (char i = 0; i < OUTPUT_SIDE_Y; i++) {
+		for (char j = 0; j < OUTPUT_SIDE_X; j++) {
+			//when using rgb profile
+			id = (i * OUTPUT_SIDE_Y + j) * 3;
+			if (id < len - 2) {
+				cout << "\x1b[48;2;" << data[id] << ";" << data[id + 1] << ";" << data[id + 2] << "m";
+			}
+			break;
+		}
+		cout << endl;
+	}
+#else //raspi (or linux but why)
+	printf("hi pi);
+#endif // WINDOWS
+}
+
+void use_dmx_data(char* buffer) {
+	//printf("DMX packet received\n");
+
+	//create packet and populate
+	art_dmx_packet packet = {};
+	memcpy(&packet, buffer, BUFFER_SIZE);
+
+	//check address to ensure only running correct data
+	uint16_t port_address = (uint16_t)MAKEWORD(packet.sub_uni, packet.net);
+
+	//create array to hold dmx data
+	uint16_t dmx_data_length = (uint16_t)MAKEWORD(packet.length_lo, packet.length_hi);
+
+	//create arrray
+	char* dmx_data = (char*)calloc(dmx_data_length, sizeof(char));
+	if (dmx_data != nullptr) {
+		//move data to memory place for it
+		memcpy(dmx_data, packet.data, dmx_data_length * sizeof(char));
+
+		//display data, depending on build type :)
+		display_dmx(dmx_data, dmx_data_length);
+
+	}
+	//give back memory (no leak)
+	free(dmx_data);
+}
+
 int main(int argc, char* argv[]) {
 	//windows specific stuff :(
 #ifdef WINDOWS
@@ -170,32 +216,36 @@ int main(int argc, char* argv[]) {
 			inet_ntop(AF_INET, &sin_local.sin_addr, text_address, sizeof(text_address));
 
 			switch (op_code) {
-			case OP_POLL: {
+			case OP_POLL: {//poll to find all nodes, every 2 to 3 seconds
 				send_reply_packet(sin_other, socket_fd, device_address, poll_counter++); //send reply and increase pollcounter
-			}
-						break;
-			case OP_POLL_REPLY:
-				break;
-			case OP_DIAG_DATA:
-				break;
-			case OP_DMX:
-				printf("DMX packet received from :%s\n", text_address);
-				break;
-			case OP_NZS:
-				break;
-			case OP_SYNC:
-				break;
-			case OP_ADDRESS:
-				break;
-			case OP_RDM:
-				break;
-			default:
+			}break;
+			case OP_POLL_REPLY: {//reply to poll packets
+				//ignore
+			}break;
+			case OP_DIAG_DATA: {//diagnostics and logging
+			}break;
+			case OP_DMX: {//dmx data
+				use_dmx_data(buffer);
+			}break;
+			case OP_NZS: {//nonzero start code dmx data
+			}break;
+			case OP_SYNC: {//time sync packet
+			}break;
+			case OP_ADDRESS: {//remote address programming info
+			}break;
+			case OP_RDM: {//rdm data (no discovery)
+			}break;
+			case OP_TOD_REQUEST: {//Table of Device discorvery request
+			}break;
+			case OP_TOD_DATA: {//table of device answer
+			}break;
+			default: {//display info to console
 				printf("received something from :%s\n", text_address);
 				//printf("\n");
 				printf(buffer);
 				printf("\n");
 				printf("%d\n", op_code);
-				break;
+			}break;
 			}
 		}
 	}
