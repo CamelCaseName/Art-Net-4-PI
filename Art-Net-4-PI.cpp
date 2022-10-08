@@ -60,11 +60,26 @@ void send_reply_packet(sockaddr_in socket_data, int socket_fd, ULONG device_addr
 			}
 
 			//print notification and address
-			char text_addr[17] = {};
-			inet_ntop(AF_INET, &address, text_addr, sizeof(text_addr));
-			printf("reply sent to: %s\n", text_addr);
+			printf("ArtPollReply sent to: %s\n", address_string);
 		}
 	}
+}
+
+void display_dmx_data(const char* text_address, void* buffer, uint16_t buffer_size) {
+	printf("DMX packet received from :%s\n", text_address);
+
+	art_dmx_packet dmx_data;
+	memcpy_s(&dmx_data, sizeof(art_dmx_packet), buffer, sizeof(art_dmx_packet));
+	uint16_t total_data_length = (uint16_t)(dmx_data.length_lo + (uint16_t)(dmx_data.length_hi << 8));
+
+	dmx_data.data = (uint8_t*)malloc(total_data_length * sizeof(char));
+
+	for (size_t i = 0; i < total_data_length; i++) {
+		if (i % 16 == 0) printf("\n");
+		printf("%x ", (uint32_t)((char*)buffer)[sizeof(art_dmx_packet) - sizeof(char*) + i] & 0xFF);
+		dmx_data.data[i] = ((char*)buffer)[sizeof(art_dmx_packet) - sizeof(char*) + i];
+	}
+
 }
 
 int main(int argc, char* argv[]) {
@@ -167,16 +182,15 @@ int main(int argc, char* argv[]) {
 			inet_ntop(AF_INET, &sin_local.sin_addr, text_address, sizeof(text_address));
 
 			switch (op_code) {
-			case OP_POLL: {
+			case OP_POLL:
 				send_reply_packet(sin_other, socket_fd, device_address, poll_counter++); //send reply and increase pollcounter
-			}
-						break;
+				break;
 			case OP_POLL_REPLY:
 				break;
 			case OP_DIAG_DATA:
 				break;
 			case OP_DMX:
-				printf("DMX packet received from :%s\n", text_address);
+				display_dmx_data(text_address, buffer, BUFFER_SIZE);
 				break;
 			case OP_NZS:
 				break;
