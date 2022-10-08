@@ -27,9 +27,9 @@
 #include <netdb.h>
 #endif
 
-#include "Art-NetOemCodes.h" //pulled from https://artisticlicence.com/WebSiteMaster/Software/Art-Net/Art-NetOemCodes.h
-#include "Art-Net-Codes.h" //manually typed code macros from the latest Art-Net 4 documentation 
-#include "Art-Net-Constants.h" //some constants and helper functions
+#include "Art-NetOemCodes.hpp" //pulled from https://artisticlicence.com/WebSiteMaster/Software/Art-Net/Art-NetOemCodes.h
+#include "Art-Net-Codes.hpp" //manually typed code macros from the latest Art-Net 4 documentation 
+#include "Art-Net-Constants.hpp" //some constants and helper functions
 #include "Art-Net-Structs.h" //manually typed struct definitions from the latest Art-Net 4 documentation 
 
 void print_error(char* reason) {

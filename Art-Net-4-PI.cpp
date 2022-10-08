@@ -1,6 +1,6 @@
 ﻿// Art-Net-4-PI.cpp : Defines the entry point for the application.
 
-#include "Art-Net-4-PI.h"
+#include "Art-Net-4-PI.hpp"
 
 using namespace std;
 
@@ -150,11 +150,8 @@ int main(int argc, char* argv[]) {
 
 		//check header
 		for (size_t i = 0; i < 8; i++) {
-			if (art_net_name[i] != buffer[i]) {
-				header_ok = false;
-				break;
-			}
-			header_ok = true;
+			header_ok = art_net_name[i] == buffer[i];
+			if (!header_ok) break;
 		}
 
 		if (!header_ok) {
